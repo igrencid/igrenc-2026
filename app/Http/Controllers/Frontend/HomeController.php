@@ -31,8 +31,8 @@ class HomeController extends Controller
         $featuredItems = Item::query()
             ->with(['game', 'category'])
             ->where('is_active', true)
-            ->where('stock', '>', 0)
             ->where('is_featured', true)
+            ->where('stock', '>', 0)
             ->latest()
             ->take(8)
             ->get();

@@ -1,10 +1,6 @@
 @extends('frontend.layouts.app', ['title' => 'GameVault Market'])
 
 @section('content')
-@php
-    $heroItem = $featuredItems->first() ?? $latestItems->first();
-@endphp
-
 <section class="mx-auto grid max-w-7xl items-center gap-10 px-5 py-16 lg:grid-cols-2">
     <div>
         <div class="mb-5 inline-flex rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-2 text-sm font-bold text-purple-300">
@@ -52,41 +48,97 @@
         </div>
     </div>
 
-    <div class="glass neon overflow-hidden rounded-[2rem] p-6">
-        <div class="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-purple-700 via-indigo-900 to-cyan-900">
-            @if($heroItem?->image)
-                <img src="{{ asset('storage/' . $heroItem->image) }}" alt="{{ $heroItem->name }}" class="absolute inset-0 h-full w-full object-cover opacity-70">
-            @endif
+    <div
+        x-data="{
+            index: 0,
+            items: @js($featuredItems->values()),
+            init() {
+                if (this.items.length > 1) {
+                    setInterval(() => {
+                        this.index = (this.index + 1) % this.items.length;
+                    }, 4000);
+                }
+            }
+        }"
+        class="glass neon overflow-hidden rounded-[2rem] p-6"
+    >
+        <template x-if="items.length > 0">
+            <div class="relative h-[520px] overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-purple-700 via-indigo-900 to-cyan-900">
+                <img
+                    :src="items[index].image ? '/storage/' + items[index].image : 'https://placehold.co/800x600/111827/ffffff?text=GameVault'"
+                    class="absolute inset-0 h-full w-full scale-105 object-cover opacity-80 transition-all duration-700"
+                    alt="Featured Item"
+                >
 
-            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent"></div>
 
-            <div class="relative flex h-full flex-col justify-end p-8">
-                <div class="rounded-2xl bg-black/50 p-5 backdrop-blur">
-                    <div class="text-sm text-purple-300">Featured Item</div>
+                <div class="absolute right-4 top-4">
+                    <span class="rounded-full bg-purple-600 px-4 py-2 text-xs font-bold">
+                        FEATURED
+                    </span>
+                </div>
 
-                    <div class="mt-1 text-3xl font-black">
-                        {{ $heroItem?->name ?? 'Belum ada item aktif' }}
+                <div class="absolute inset-x-0 bottom-0">
+                    <div class="bg-gradient-to-t from-black via-black/80 to-transparent p-8">
+                        <div class="flex items-end justify-between gap-4">
+                            <div>
+                                <div class="text-sm font-semibold text-purple-300">
+                                    Featured Item
+                                </div>
+
+                                <h2
+                                    class="mt-1 text-4xl font-black text-white"
+                                    x-text="items[index].name"
+                                ></h2>
+
+                                <div class="mt-1 text-sm text-slate-300">
+                                    <span x-text="items[index].game?.name ?? '-'"></span>
+                                    <span> • </span>
+                                    <span x-text="items[index].category?.name ?? '-'"></span>
+                                </div>
+
+                                <div
+                                    class="mt-2 text-2xl font-black text-cyan-300"
+                                    x-text="'Rp ' + Number(items[index].price).toLocaleString('id-ID')"
+                                ></div>
+                            </div>
+
+                            <a
+                                :href="'/items/' + items[index].slug"
+                                class="shrink-0 rounded-xl bg-purple-600 px-5 py-3 font-bold hover:bg-purple-500"
+                            >
+                                Lihat Detail
+                            </a>
+                        </div>
+
+                        <div class="mt-5 flex gap-2">
+                            <template x-for="(item, i) in items" :key="i">
+                                <button
+                                    type="button"
+                                    @click="index = i"
+                                    class="h-2 rounded-full transition-all duration-500"
+                                    :class="i === index ? 'w-12 bg-purple-500' : 'w-2 bg-white/30'"
+                                ></button>
+                            </template>
+                        </div>
                     </div>
-
-                    <div class="mt-2 text-sm text-slate-300">
-                        {{ $heroItem?->game?->name ?? 'Tambahkan item dari admin' }}
-                        @if($heroItem?->category)
-                            • {{ $heroItem->category->name }}
-                        @endif
-                    </div>
-
-                    <div class="mt-3 text-xl font-bold text-cyan-300">
-                        Rp {{ number_format($heroItem?->price ?? 0, 0, ',', '.') }}
-                    </div>
-
-                    @if($heroItem)
-                        <a href="{{ route('items.show', $heroItem->slug) }}" class="mt-4 inline-block rounded-xl bg-purple-600 px-4 py-3 font-bold hover:bg-purple-500">
-                            Lihat Detail
-                        </a>
-                    @endif
                 </div>
             </div>
-        </div>
+        </template>
+
+        <template x-if="items.length === 0">
+            <div class="flex h-[520px] items-center justify-center rounded-[1.5rem] bg-gradient-to-br from-purple-700 via-indigo-900 to-cyan-900">
+                <div class="text-center">
+                    <div class="text-2xl font-black">
+                        Belum Ada Featured Item
+                    </div>
+
+                    <div class="mt-2 text-slate-300">
+                        Aktifkan Featured dari Admin Panel
+                    </div>
+                </div>
+            </div>
+        </template>
     </div>
 </section>
 
