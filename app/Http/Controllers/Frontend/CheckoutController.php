@@ -17,7 +17,8 @@ class CheckoutController extends Controller
         $cart = session()->get('cart', []);
 
         if (empty($cart)) {
-            return redirect()->route('items.index')->with('error', 'Keranjang masih kosong.');
+            return redirect()->route('items.index')
+                ->with('error', 'Keranjang masih kosong.');
         }
 
         $total = collect($cart)->sum(fn ($item) => $item['price'] * $item['quantity']);
@@ -30,7 +31,7 @@ class CheckoutController extends Controller
         $request->validate([
             'customer_name' => ['required', 'string', 'max:255'],
             'customer_email' => ['required', 'email', 'max:255'],
-            'customer_phone' => ['nullable', 'string', 'max:30'],
+            'customer_whatsapp' => ['nullable', 'string', 'max:30'],
             'payment_method' => ['required', 'in:bank_transfer,qris,ewallet'],
             'notes' => ['nullable', 'string'],
         ]);
@@ -38,7 +39,8 @@ class CheckoutController extends Controller
         $cart = session()->get('cart', []);
 
         if (empty($cart)) {
-            return redirect()->route('items.index')->with('error', 'Keranjang masih kosong.');
+            return redirect()->route('items.index')
+                ->with('error', 'Keranjang masih kosong.');
         }
 
         try {
@@ -65,7 +67,7 @@ class CheckoutController extends Controller
                     'invoice_number' => 'GV-' . now()->format('YmdHis') . rand(100, 999),
                     'customer_name' => $request->customer_name,
                     'customer_email' => $request->customer_email,
-                    'customer_phone' => $request->customer_phone,
+                    'customer_whatsapp' => $request->customer_whatsapp,
                     'total_price' => $total,
                     'status' => 'pending',
                     'notes' => $request->notes,
@@ -96,14 +98,16 @@ class CheckoutController extends Controller
                 return $order;
             });
         } catch (Throwable $e) {
-            return back()->with('error', $e->getMessage());
+            return back()
+                ->withInput()
+                ->with('error', $e->getMessage());
         }
 
         session()->forget('cart');
 
         return redirect()
             ->route('orders.show', $order->invoice_number)
-            ->with('success', 'Pesanan dibuat. Silakan lakukan pembayaran dan upload bukti transfer.');
+            ->with('success', 'Pesanan berhasil dibuat. Silakan lakukan pembayaran dan upload bukti transfer.');
     }
 
     public function success(Order $order)

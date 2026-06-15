@@ -37,6 +37,19 @@ class HomeController extends Controller
             ->take(8)
             ->get();
 
+        $promoItems = Item::query()
+            ->with(['game', 'category'])
+            ->where('is_active', true)
+            ->where('is_promo', true)
+            ->where('stock', '>', 0)
+            ->where(function ($query) {
+                $query->whereNull('promo_ends_at')
+                    ->orWhere('promo_ends_at', '>=', now());
+            })
+            ->latest()
+            ->take(4)
+            ->get();
+
         $latestItems = Item::query()
             ->with(['game', 'category'])
             ->where('is_active', true)
@@ -49,6 +62,7 @@ class HomeController extends Controller
             'games',
             'categories',
             'featuredItems',
+            'promoItems',
             'latestItems'
         ));
     }

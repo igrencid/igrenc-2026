@@ -36,7 +36,7 @@
     <nav class="sticky top-0 z-50 border-b border-white/10 bg-[#050816]/80 backdrop-blur-xl">
         <div class="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
             <a href="{{ route('home') }}" class="text-xl font-black">
-                Game<span class="text-purple-400">Vault</span>
+                Igrenc<span class="text-purple-400">Game</span>
             </a>
 
             <div class="hidden items-center gap-8 md:flex">
@@ -75,8 +75,8 @@
 
     <footer class="mt-20 border-t border-white/10 py-8">
         <div class="mx-auto flex max-w-7xl flex-col gap-3 px-5 text-sm text-slate-400 md:flex-row md:items-center md:justify-between">
-            <div>© {{ date('Y') }} GameVault Market. Marketplace item game digital.</div>
-            <div>Landing Page → Game → Item → Cart → Checkout</div>
+            <div>© {{ date('Y') }} IgrencGame</div>
+            <div>BeliItepGameTerpercaya</div>
         </div>
     </footer>
 </body>

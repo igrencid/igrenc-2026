@@ -32,8 +32,9 @@ class Payment extends Model
         return $this->belongsTo(User::class, 'verified_by');
     }
 
-    public function refundRequests()
-    {
-    return $this->hasMany(RefundRequest::class);
-    }
+    // Aktifkan ini kalau RefundRequest sudah dibuat
+    // public function refundRequests()
+    // {
+    //     return $this->hasMany(RefundRequest::class);
+    // }
 }

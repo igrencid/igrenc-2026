@@ -7,6 +7,8 @@ use App\Http\Controllers\Frontend\ItemController;
 use App\Http\Controllers\Frontend\OrderTrackingController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Frontend\RefundRequestController;
+use App\Http\Controllers\Frontend\InvoiceController;
+use App\Http\Controllers\Frontend\MidtransController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -30,3 +32,11 @@ Route::post('/orders/{order:invoice_number}/upload-proof', [OrderTrackingControl
 
 Route::post('/orders/{order:invoice_number}/refund', [RefundRequestController::class, 'store'])
     ->name('orders.refund.store');
+Route::get('/orders/{order:invoice_number}/invoice', [InvoiceController::class, 'download'])
+    ->name('orders.invoice.download');
+
+Route::get('/orders/{order:invoice_number}/pay-midtrans', [MidtransController::class, 'pay'])
+    ->name('orders.midtrans.pay');
+
+Route::post('/midtrans/callback', [MidtransController::class, 'callback'])
+    ->name('midtrans.callback');

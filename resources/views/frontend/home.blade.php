@@ -86,10 +86,7 @@
                                     Featured Item
                                 </div>
 
-                                <h2
-                                    class="mt-1 text-4xl font-black text-white"
-                                    x-text="items[index].name"
-                                ></h2>
+                                <h2 class="mt-1 text-4xl font-black text-white" x-text="items[index].name"></h2>
 
                                 <div class="mt-1 text-sm text-slate-300">
                                     <span x-text="items[index].game?.name ?? '-'"></span>
@@ -97,10 +94,24 @@
                                     <span x-text="items[index].category?.name ?? '-'"></span>
                                 </div>
 
-                                <div
-                                    class="mt-2 text-2xl font-black text-cyan-300"
-                                    x-text="'Rp ' + Number(items[index].price).toLocaleString('id-ID')"
-                                ></div>
+                                <div class="mt-2">
+                                    <template x-if="items[index].is_promo && items[index].promo_price">
+                                        <div>
+                                            <div class="text-sm text-red-400 line-through"
+                                                x-text="'Rp ' + Number(items[index].price).toLocaleString('id-ID')">
+                                            </div>
+                                            <div class="text-2xl font-black text-green-400"
+                                                x-text="'Rp ' + Number(items[index].promo_price).toLocaleString('id-ID')">
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <template x-if="!(items[index].is_promo && items[index].promo_price)">
+                                        <div class="text-2xl font-black text-cyan-300"
+                                            x-text="'Rp ' + Number(items[index].price).toLocaleString('id-ID')">
+                                        </div>
+                                    </template>
+                                </div>
                             </div>
 
                             <a
@@ -129,13 +140,8 @@
         <template x-if="items.length === 0">
             <div class="flex h-[520px] items-center justify-center rounded-[1.5rem] bg-gradient-to-br from-purple-700 via-indigo-900 to-cyan-900">
                 <div class="text-center">
-                    <div class="text-2xl font-black">
-                        Belum Ada Featured Item
-                    </div>
-
-                    <div class="mt-2 text-slate-300">
-                        Aktifkan Featured dari Admin Panel
-                    </div>
+                    <div class="text-2xl font-black">Belum Ada Featured Item</div>
+                    <div class="mt-2 text-slate-300">Aktifkan Featured dari Admin Panel</div>
                 </div>
             </div>
         </template>
@@ -164,10 +170,7 @@
                 </div>
 
                 <div class="mt-4 font-bold">{{ $game->name }}</div>
-
-                <div class="text-sm text-slate-400">
-                    {{ $game->items_count ?? 0 }} item
-                </div>
+                <div class="text-sm text-slate-400">{{ $game->items_count ?? 0 }} item</div>
             </a>
         @empty
             <div class="glass col-span-full rounded-2xl p-8 text-center text-slate-400">
@@ -234,7 +237,7 @@
                 <h2 class="text-4xl font-black">Promo Item Game Hari Ini</h2>
 
                 <p class="mt-3 max-w-xl text-slate-400">
-                    Menampilkan item terbaru dari database. Kamu bisa ubah data item melalui admin panel.
+                    Item yang sedang mendapatkan promo khusus dari admin.
                 </p>
             </div>
 
@@ -244,7 +247,7 @@
         </div>
 
         <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            @forelse($latestItems->take(4) as $item)
+            @forelse($promoItems as $item)
                 @include('frontend.items.partials.card', ['item' => $item])
             @empty
                 <div class="glass col-span-full rounded-2xl p-8 text-center text-slate-400">

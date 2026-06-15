@@ -37,8 +37,9 @@ class OrderResource extends Resource
                         ->email()
                         ->required(),
 
-                    Forms\Components\TextInput::make('customer_phone')
-                        ->label('No HP'),
+                    Forms\Components\TextInput::make('customer_whatsapp')
+                        ->label('Whatsapp')
+                        ->maxLength(30),
                 ])
                 ->columns(2),
 
@@ -82,20 +83,27 @@ class OrderResource extends Resource
                     ->label('Email')
                     ->searchable(),
 
+                Tables\Columns\TextColumn::make('customer_whatsapp')
+                    ->label('Whatsapp')
+                    ->searchable()
+                    ->placeholder('-'),
+
                 Tables\Columns\TextColumn::make('total_price')
                     ->label('Total')
                     ->money('IDR')
                     ->sortable(),
 
-                Tables\Columns\BadgeColumn::make('status')
+                Tables\Columns\TextColumn::make('status')
                     ->label('Status')
-                    ->colors([
-                        'warning' => 'pending',
-                        'success' => 'paid',
-                        'info' => 'processing',
-                        'primary' => 'completed',
-                        'danger' => 'cancelled',
-                    ]),
+                    ->badge()
+                    ->color(fn ($state) => match ($state) {
+                        'pending' => 'warning',
+                        'paid' => 'success',
+                        'processing' => 'info',
+                        'completed' => 'primary',
+                        'cancelled' => 'danger',
+                        default => 'gray',
+                    }),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Tanggal')

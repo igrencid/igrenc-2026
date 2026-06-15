@@ -15,7 +15,7 @@ class RefundRequestResource extends Resource
     protected static ?string $model = RefundRequest::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-uturn-left';
-    protected static ?string $navigationGroup = 'Transaction';
+    protected static ?string $navigationGroup = 'Transaksi';
     protected static ?string $navigationLabel = 'Refund Requests';
 
     public static function form(Form $form): Form
@@ -41,17 +41,19 @@ class RefundRequestResource extends Resource
                 ->label('Nomor Rekening / E-Wallet')
                 ->required(),
 
-            Forms\Components\Textarea::make('reason')
-                ->label('Alasan')
-                ->columnSpanFull(),
-
             Forms\Components\Select::make('status')
+                ->label('Status')
                 ->options([
                     'pending' => 'Pending',
                     'processed' => 'Processed',
                     'rejected' => 'Rejected',
                 ])
+                ->default('pending')
                 ->required(),
+
+            Forms\Components\Textarea::make('reason')
+                ->label('Alasan')
+                ->columnSpanFull(),
 
             Forms\Components\Textarea::make('admin_notes')
                 ->label('Catatan Admin')
@@ -66,7 +68,8 @@ class RefundRequestResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('order.invoice_number')
                     ->label('Invoice')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('order.customer_name')
                     ->label('Customer')
@@ -74,7 +77,12 @@ class RefundRequestResource extends Resource
 
                 Tables\Columns\TextColumn::make('refund_method')
                     ->label('Metode')
-                    ->badge(),
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => match ($state) {
+                        'bank' => 'Bank Transfer',
+                        'ewallet' => 'E-Wallet',
+                        default => ucfirst((string) $state),
+                    }),
 
                 Tables\Columns\TextColumn::make('account_name')
                     ->label('Nama Akun')
@@ -85,6 +93,7 @@ class RefundRequestResource extends Resource
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
                     ->badge()
                     ->color(fn ($state) => match ($state) {
                         'pending' => 'warning',
@@ -93,9 +102,23 @@ class RefundRequestResource extends Resource
                         default => 'gray',
                     }),
 
+                Tables\Columns\TextColumn::make('processed_at')
+                    ->label('Diproses')
+                    ->dateTime('d M Y H:i')
+                    ->placeholder('-'),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Tanggal')
-                    ->dateTime('d M Y H:i'),
+                    ->dateTime('d M Y H:i')
+                    ->sortable(),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'processed' => 'Processed',
+                        'rejected' => 'Rejected',
+                    ]),
             ])
             ->actions([
                 Tables\Actions\Action::make('process')
@@ -103,8 +126,8 @@ class RefundRequestResource extends Resource
                     ->color('success')
                     ->icon('heroicon-o-check-circle')
                     ->requiresConfirmation()
-                    ->visible(fn ($record) => $record->status === 'pending')
-                    ->action(function ($record) {
+                    ->visible(fn (RefundRequest $record) => $record->status === 'pending')
+                    ->action(function (RefundRequest $record) {
                         $record->update([
                             'status' => 'processed',
                             'processed_at' => now(),
@@ -117,8 +140,8 @@ class RefundRequestResource extends Resource
                     ->color('danger')
                     ->icon('heroicon-o-x-circle')
                     ->requiresConfirmation()
-                    ->visible(fn ($record) => $record->status === 'pending')
-                    ->action(function ($record) {
+                    ->visible(fn (RefundRequest $record) => $record->status === 'pending')
+                    ->action(function (RefundRequest $record) {
                         $record->update([
                             'status' => 'rejected',
                             'processed_at' => now(),

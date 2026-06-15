@@ -14,6 +14,10 @@ class RefundRequestController extends Controller
             return back()->with('error', 'Refund hanya bisa diajukan jika pembayaran ditolak.');
         }
 
+        if ($order->refundRequests()->exists()) {
+            return back()->with('error', 'Refund untuk pesanan ini sudah pernah diajukan.');
+        }
+
         $request->validate([
             'refund_method' => ['required', 'in:bank,ewallet'],
             'account_name' => ['required', 'string', 'max:255'],

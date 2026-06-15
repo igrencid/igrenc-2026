@@ -16,10 +16,13 @@ class Item extends Model
         'slug',
         'description',
         'price',
+        'promo_price',
+        'promo_ends_at',
         'stock',
         'rarity',
         'image',
         'is_featured',
+        'is_promo',
         'is_active',
         'requires_access_link',
         'access_link',
@@ -28,8 +31,11 @@ class Item extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
+        'promo_price' => 'decimal:2',
+        'promo_ends_at' => 'datetime',
         'stock' => 'integer',
         'is_featured' => 'boolean',
+        'is_promo' => 'boolean',
         'is_active' => 'boolean',
         'requires_access_link' => 'boolean',
     ];
@@ -47,5 +53,18 @@ class Item extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function getFinalPriceAttribute()
+    {
+        if (
+            $this->is_promo &&
+            $this->promo_price &&
+            (! $this->promo_ends_at || $this->promo_ends_at->isFuture())
+        ) {
+            return $this->promo_price;
+        }
+
+        return $this->price;
     }
 }

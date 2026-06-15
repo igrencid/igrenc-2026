@@ -56,10 +56,10 @@ class ItemResource extends Resource
                 ])
                 ->columns(2),
 
-            Forms\Components\Section::make('Harga & Stok')
+            Forms\Components\Section::make('Harga, Promo & Stok')
                 ->schema([
                     Forms\Components\TextInput::make('price')
-                        ->label('Harga')
+                        ->label('Harga Normal')
                         ->numeric()
                         ->prefix('Rp')
                         ->minValue(0)
@@ -84,6 +84,24 @@ class ItemResource extends Resource
                     Forms\Components\Toggle::make('is_featured')
                         ->label('Featured')
                         ->default(false),
+
+                    Forms\Components\Toggle::make('is_promo')
+                        ->label('Promo / Flash Sale')
+                        ->live()
+                        ->default(false),
+
+                    Forms\Components\TextInput::make('promo_price')
+                        ->label('Harga Promo')
+                        ->numeric()
+                        ->prefix('Rp')
+                        ->minValue(0)
+                        ->visible(fn (Forms\Get $get) => (bool) $get('is_promo'))
+                        ->required(fn (Forms\Get $get) => (bool) $get('is_promo')),
+
+                    Forms\Components\DateTimePicker::make('promo_ends_at')
+                        ->label('Promo Berakhir')
+                        ->seconds(false)
+                        ->visible(fn (Forms\Get $get) => (bool) $get('is_promo')),
                 ])
                 ->columns(2),
 
@@ -148,8 +166,14 @@ class ItemResource extends Resource
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('price')
-                    ->label('Harga')
+                    ->label('Harga Normal')
                     ->money('IDR')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('promo_price')
+                    ->label('Harga Promo')
+                    ->money('IDR')
+                    ->placeholder('-')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('stock')
@@ -169,9 +193,18 @@ class ItemResource extends Resource
                     ->label('Featured')
                     ->boolean(),
 
+                Tables\Columns\IconColumn::make('is_promo')
+                    ->label('Promo')
+                    ->boolean(),
+
                 Tables\Columns\IconColumn::make('requires_access_link')
                     ->label('Access Link')
                     ->boolean(),
+
+                Tables\Columns\TextColumn::make('promo_ends_at')
+                    ->label('Promo Berakhir')
+                    ->dateTime('d M Y H:i')
+                    ->placeholder('-'),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat')
@@ -192,6 +225,9 @@ class ItemResource extends Resource
 
                 Tables\Filters\TernaryFilter::make('is_featured')
                     ->label('Featured'),
+
+                Tables\Filters\TernaryFilter::make('is_promo')
+                    ->label('Promo'),
 
                 Tables\Filters\TernaryFilter::make('requires_access_link')
                     ->label('Butuh Access Link'),

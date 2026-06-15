@@ -13,17 +13,21 @@
     </div>
 
     <form method="GET" action="{{ route('items.index') }}" class="glass rounded-2xl p-5">
-        <div class="grid gap-4 md:grid-cols-5">
+        <div class="grid gap-4 md:grid-cols-4">
             <input
                 type="text"
                 name="search"
                 value="{{ request('search') }}"
                 placeholder="Cari item..."
-                class="rounded-xl border border-white/10 bg-black/30 px-4 py-3 outline-none"
+                class="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
             >
 
-            <select name="game" class="rounded-xl border border-white/10 bg-black/30 px-4 py-3">
+            <select
+                name="game"
+                class="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white"
+            >
                 <option value="">Semua Game</option>
+
                 @foreach($games as $game)
                     <option value="{{ $game->slug }}" @selected(request('game') === $game->slug)>
                         {{ $game->name }}
@@ -31,20 +35,17 @@
                 @endforeach
             </select>
 
-            <select name="category" class="rounded-xl border border-white/10 bg-black/30 px-4 py-3">
-                <option value="">Semua Kategori</option>
-                @foreach($categories as $category)
-                    <option value="{{ $category->slug }}" @selected(request('category') === $category->slug)>
-                        {{ $category->name }}
-                    </option>
-                @endforeach
-            </select>
-
-            <button type="submit" class="rounded-xl bg-purple-600 px-4 py-3 font-bold hover:bg-purple-500">
+            <button
+                type="submit"
+                class="rounded-xl bg-purple-600 px-4 py-3 font-bold hover:bg-purple-500"
+            >
                 Filter
             </button>
 
-            <a href="{{ route('items.index') }}" class="rounded-xl border border-white/10 px-4 py-3 text-center font-bold hover:bg-white/10">
+            <a
+                href="{{ route('items.index') }}"
+                class="rounded-xl border border-white/10 px-4 py-3 text-center font-bold hover:bg-white/10"
+            >
                 Reset
             </a>
         </div>
@@ -56,7 +57,7 @@
             dari <b class="text-white">{{ $items->total() }}</b> item
         </div>
 
-        @if(request()->filled('search') || request()->filled('game') || request()->filled('category'))
+        @if(request()->filled('search') || request()->filled('game'))
             <div class="rounded-full bg-purple-500/10 px-4 py-2 text-purple-300">
                 Filter Aktif
             </div>
