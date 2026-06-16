@@ -19,6 +19,21 @@ class PaymentResource extends Resource
     protected static ?string $navigationGroup = 'Transaksi';
     protected static ?string $navigationLabel = 'Payments';
 
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return false;
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return false;
+    }
+
     public static function form(Form $form): Form
     {
         return $form->schema([
@@ -27,49 +42,57 @@ class PaymentResource extends Resource
                 ->options(Order::query()->pluck('invoice_number', 'id'))
                 ->searchable()
                 ->preload()
-                ->required(),
+                ->disabled()
+                ->dehydrated(false),
 
-            Forms\Components\Select::make('payment_method')
+            Forms\Components\TextInput::make('payment_method')
                 ->label('Metode Pembayaran')
-                ->options([
-                    'manual' => 'Manual Transfer',
-                    'bank_transfer' => 'Bank Transfer',
-                    'qris' => 'QRIS',
-                    'ewallet' => 'E-Wallet',
-                ])
-                ->required(),
+                ->disabled()
+                ->dehydrated(false),
+
+            Forms\Components\TextInput::make('transaction_id')
+                ->label('Transaction ID')
+                ->disabled()
+                ->dehydrated(false),
+
+            Forms\Components\TextInput::make('midtrans_order_id')
+                ->label('Midtrans Order ID')
+                ->disabled()
+                ->dehydrated(false),
 
             Forms\Components\TextInput::make('amount')
                 ->label('Jumlah Bayar')
-                ->numeric()
                 ->prefix('Rp')
-                ->required(),
+                ->disabled()
+                ->dehydrated(false),
 
-            Forms\Components\Select::make('status')
+            Forms\Components\TextInput::make('status')
                 ->label('Status Pembayaran')
-                ->options([
+                ->disabled()
+                ->dehydrated(false)
+                ->formatStateUsing(fn ($state) => match ($state) {
                     'pending' => 'Pending',
-                    'waiting_verification' => 'Waiting Verification',
                     'paid' => 'Paid',
-                    'rejected' => 'Rejected',
-                ])
-                ->default('pending')
-                ->required(),
-
-            Forms\Components\FileUpload::make('payment_proof')
-                ->label('Bukti Pembayaran')
-                ->image()
-                ->disk('public')
-                ->directory('payment-proofs')
-                ->visibility('public')
-                ->imageEditor(),
+                    'failed' => 'Failed',
+                    'expired' => 'Expired',
+                    default => ucfirst(str_replace('_', ' ', (string) $state)),
+                }),
 
             Forms\Components\DateTimePicker::make('verified_at')
                 ->label('Tanggal Verifikasi')
-                ->disabled(),
+                ->disabled()
+                ->dehydrated(false),
 
             Forms\Components\Textarea::make('notes')
                 ->label('Catatan')
+                ->disabled()
+                ->dehydrated(false)
+                ->columnSpanFull(),
+
+            Forms\Components\Textarea::make('snap_url')
+                ->label('Snap URL')
+                ->disabled()
+                ->dehydrated(false)
                 ->columnSpanFull(),
         ])->columns(2);
     }
@@ -92,11 +115,13 @@ class PaymentResource extends Resource
                     ->label('Metode')
                     ->badge()
                     ->formatStateUsing(fn ($state) => match ($state) {
-                        'manual' => 'Manual',
-                        'bank_transfer' => 'Bank Transfer',
+                        'midtrans' => 'Midtrans',
                         'qris' => 'QRIS',
-                        'ewallet' => 'E-Wallet',
-                        default => ucfirst((string) $state),
+                        'gopay' => 'GoPay',
+                        'shopeepay' => 'ShopeePay',
+                        'bank_transfer' => 'Bank Transfer',
+                        'credit_card' => 'Credit Card',
+                        default => ucfirst(str_replace('_', ' ', (string) $state)),
                     }),
 
                 Tables\Columns\TextColumn::make('amount')
@@ -104,31 +129,34 @@ class PaymentResource extends Resource
                     ->money('IDR')
                     ->sortable(),
 
-                Tables\Columns\ImageColumn::make('payment_proof')
-                    ->label('Bukti')
-                    ->disk('public')
-                    ->square(),
-
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->badge()
                     ->color(fn ($state) => match ($state) {
                         'pending' => 'warning',
-                        'waiting_verification' => 'info',
                         'paid' => 'success',
-                        'rejected' => 'danger',
+                        'failed' => 'danger',
+                        'expired' => 'gray',
                         default => 'gray',
                     })
                     ->formatStateUsing(fn ($state) => match ($state) {
                         'pending' => 'Pending',
-                        'waiting_verification' => 'Waiting',
                         'paid' => 'Paid',
-                        'rejected' => 'Rejected',
-                        default => ucfirst((string) $state),
+                        'failed' => 'Failed',
+                        'expired' => 'Expired',
+                        default => ucfirst(str_replace('_', ' ', (string) $state)),
                     }),
 
+                Tables\Columns\TextColumn::make('transaction_id')
+                    ->label('Transaction ID')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('midtrans_order_id')
+                    ->label('Midtrans Order ID')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('verified_at')
-                    ->label('Diverifikasi')
+                    ->label('Dibayar')
                     ->dateTime('d M Y H:i')
                     ->placeholder('-'),
 
@@ -141,64 +169,22 @@ class PaymentResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
                         'pending' => 'Pending',
-                        'waiting_verification' => 'Waiting Verification',
                         'paid' => 'Paid',
-                        'rejected' => 'Rejected',
+                        'failed' => 'Failed',
+                        'expired' => 'Expired',
                     ]),
             ])
             ->actions([
-                Tables\Actions\Action::make('approve')
-                    ->label('Approve')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->visible(fn (Payment $record) => in_array($record->status, ['pending', 'waiting_verification']))
-                    ->action(function (Payment $record) {
-                        $record->update([
-                            'status' => 'paid',
-                            'verified_at' => now(),
-                            'verified_by' => auth()->id(),
-                        ]);
-
-                        $record->order?->update([
-                            'status' => 'completed',
-                        ]);
-                    }),
-
-                Tables\Actions\Action::make('reject')
-                    ->label('Reject')
-                    ->icon('heroicon-o-x-circle')
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->visible(fn (Payment $record) => in_array($record->status, ['pending', 'waiting_verification']))
-                    ->action(function (Payment $record) {
-                        $record->update([
-                            'status' => 'rejected',
-                            'verified_at' => now(),
-                            'verified_by' => auth()->id(),
-                        ]);
-
-                        $record->order?->update([
-                            'status' => 'cancelled',
-                        ]);
-                    }),
-
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ViewAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->bulkActions([]);
     }
 
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListPayments::route('/'),
-            'create' => Pages\CreatePayment::route('/create'),
-            'edit' => Pages\EditPayment::route('/{record}/edit'),
+            'view' => Pages\ViewPayment::route('/{record}'),
         ];
     }
 }

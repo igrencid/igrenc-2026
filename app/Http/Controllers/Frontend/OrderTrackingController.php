@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Midtrans\Config;
+use Midtrans\Transaction;
 
 class OrderTrackingController extends Controller
 {
@@ -37,38 +39,100 @@ class OrderTrackingController extends Controller
         $order->load([
             'orderItems.item.game',
             'payment',
-            'refundRequests' => fn ($query) => $query->latest(),
+        ]);
+
+        $this->syncMidtransStatus($order);
+
+        $order->refresh()->load([
+            'orderItems.item.game',
+            'payment',
         ]);
 
         return view('frontend.orders.show', compact('order'));
     }
 
-    public function uploadProof(Request $request, Order $order)
+    private function syncMidtransStatus(Order $order): void
     {
-        if ($order->payment?->status === 'paid') {
-            return back()->with('error', 'Pembayaran sudah diverifikasi.');
+        $payment = $order->payment;
+
+        if (! $payment || ! $payment->midtrans_order_id) {
+            return;
         }
 
-        $request->validate([
-            'payment_proof' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-        ]);
+        if ($payment->status === 'paid') {
+            if ($order->status !== 'completed') {
+                $order->update(['status' => 'completed']);
+            }
 
-        $path = $request->file('payment_proof')->store('payment-proofs', 'public');
+            return;
+        }
 
-        $order->payment()->updateOrCreate(
-            ['order_id' => $order->id],
-            [
-                'payment_method' => $order->payment?->payment_method ?? 'manual',
-                'amount' => $order->total_price,
-                'payment_proof' => $path,
-                'status' => 'waiting_verification',
-            ]
-        );
+        Config::$serverKey = config('midtrans.server_key');
+        Config::$isProduction = (bool) config('midtrans.is_production');
 
-        $order->update([
-            'status' => 'waiting_verification',
-        ]);
+        try {
+            $status = Transaction::status($payment->midtrans_order_id);
 
-        return back()->with('success', 'Bukti transfer berhasil diupload. Status pembayaran menunggu verifikasi admin.');
+            $transactionStatus = $status->transaction_status ?? 'pending';
+            $fraudStatus = $status->fraud_status ?? null;
+
+            if (
+                $transactionStatus === 'settlement' ||
+                ($transactionStatus === 'capture' && $fraudStatus === 'accept')
+            ) {
+                $payment->update([
+                    'status' => 'paid',
+                    'transaction_id' => $status->transaction_id ?? $payment->transaction_id,
+                    'payment_method' => $status->payment_type ?? $payment->payment_method ?? 'midtrans',
+                    'verified_at' => now(),
+                ]);
+
+                $order->update([
+                    'status' => 'completed',
+                ]);
+
+                return;
+            }
+
+            if (in_array($transactionStatus, ['cancel', 'deny', 'failure'])) {
+                $payment->update([
+                    'status' => 'failed',
+                    'transaction_id' => $status->transaction_id ?? $payment->transaction_id,
+                    'payment_method' => $status->payment_type ?? $payment->payment_method ?? 'midtrans',
+                ]);
+
+                $order->update([
+                    'status' => 'cancelled',
+                ]);
+
+                return;
+            }
+
+            if ($transactionStatus === 'expire') {
+                $payment->update([
+                    'status' => 'expired',
+                    'transaction_id' => $status->transaction_id ?? $payment->transaction_id,
+                    'payment_method' => $status->payment_type ?? $payment->payment_method ?? 'midtrans',
+                ]);
+
+                $order->update([
+                    'status' => 'cancelled',
+                ]);
+
+                return;
+            }
+
+            $payment->update([
+                'status' => 'pending',
+                'transaction_id' => $status->transaction_id ?? $payment->transaction_id,
+                'payment_method' => $status->payment_type ?? $payment->payment_method ?? 'midtrans',
+            ]);
+
+            $order->update([
+                'status' => 'pending',
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 }

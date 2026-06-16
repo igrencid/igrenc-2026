@@ -21,7 +21,9 @@ class CheckoutController extends Controller
                 ->with('error', 'Keranjang masih kosong.');
         }
 
-        $total = collect($cart)->sum(fn ($item) => $item['price'] * $item['quantity']);
+        $total = collect($cart)->sum(
+            fn ($item) => $item['price'] * $item['quantity']
+        );
 
         return view('frontend.checkout.index', compact('cart', 'total'));
     }
@@ -32,7 +34,6 @@ class CheckoutController extends Controller
             'customer_name' => ['required', 'string', 'max:255'],
             'customer_email' => ['required', 'email', 'max:255'],
             'customer_whatsapp' => ['nullable', 'string', 'max:30'],
-            'payment_method' => ['required', 'in:bank_transfer,qris,ewallet'],
             'notes' => ['nullable', 'string'],
         ]);
 
@@ -60,7 +61,9 @@ class CheckoutController extends Controller
                         throw new \Exception('Item tidak tersedia atau stok tidak cukup.');
                     }
 
-                    $total += $item->price * $quantity;
+                    $finalPrice = (float) $item->final_price;
+
+                    $total += $finalPrice * $quantity;
                 }
 
                 $order = Order::create([
@@ -76,13 +79,14 @@ class CheckoutController extends Controller
                 foreach ($cart as $cartItem) {
                     $item = $items->get($cartItem['id']);
                     $quantity = (int) $cartItem['quantity'];
+                    $finalPrice = (float) $item->final_price;
 
                     $order->orderItems()->create([
                         'item_id' => $item->id,
                         'item_name' => $item->name,
-                        'price' => $item->price,
+                        'price' => $finalPrice,
                         'quantity' => $quantity,
-                        'subtotal' => $item->price * $quantity,
+                        'subtotal' => $finalPrice * $quantity,
                     ]);
 
                     $item->decrement('stock', $quantity);
@@ -90,7 +94,7 @@ class CheckoutController extends Controller
 
                 Payment::create([
                     'order_id' => $order->id,
-                    'payment_method' => $request->payment_method,
+                    'payment_method' => 'midtrans',
                     'amount' => $total,
                     'status' => 'pending',
                 ]);
@@ -107,7 +111,7 @@ class CheckoutController extends Controller
 
         return redirect()
             ->route('orders.show', $order->invoice_number)
-            ->with('success', 'Pesanan berhasil dibuat. Silakan lakukan pembayaran dan upload bukti transfer.');
+            ->with('success', 'Pesanan berhasil dibuat. Silakan lanjutkan pembayaran melalui Midtrans.');
     }
 
     public function success(Order $order)

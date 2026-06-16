@@ -81,8 +81,8 @@ class ItemResource extends Resource
                         ->label('Aktif')
                         ->default(true),
 
-                    Forms\Components\Toggle::make('is_featured')
-                        ->label('Featured')
+                    Forms\Components\Toggle::make('is_favorite')
+                        ->label('Favorite')
                         ->default(false),
 
                     Forms\Components\Toggle::make('is_promo')
@@ -189,8 +189,8 @@ class ItemResource extends Resource
                     ->label('Aktif')
                     ->boolean(),
 
-                Tables\Columns\IconColumn::make('is_featured')
-                    ->label('Featured')
+                Tables\Columns\IconColumn::make('is_favorite')
+                    ->label('Favorite')
                     ->boolean(),
 
                 Tables\Columns\IconColumn::make('is_promo')
@@ -223,8 +223,8 @@ class ItemResource extends Resource
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Aktif'),
 
-                Tables\Filters\TernaryFilter::make('is_featured')
-                    ->label('Featured'),
+                Tables\Filters\TernaryFilter::make('is_favorite')
+                    ->label('Favorite'),
 
                 Tables\Filters\TernaryFilter::make('is_promo')
                     ->label('Promo'),

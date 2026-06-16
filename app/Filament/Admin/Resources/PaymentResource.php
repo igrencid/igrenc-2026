@@ -56,9 +56,12 @@ class PaymentResource extends Resource
                         ->label('Status Pembayaran')
                         ->options([
                             'pending' => 'Pending',
-                            'paid' => 'Paid',
-                            'failed' => 'Failed',
-                            'expired' => 'Expired',
+                            'settlement' => 'Settlement / Lunas',
+                            'capture' => 'Capture',
+                            'deny' => 'Deny',
+                            'cancel' => 'Cancel',
+                            'expire' => 'Expire',
+                            'failure' => 'Failure',
                         ])
                         ->default('pending')
                         ->required(),
@@ -108,14 +111,26 @@ class PaymentResource extends Resource
                     ->money('IDR')
                     ->sortable(),
 
-                Tables\Columns\BadgeColumn::make('status')
+                Tables\Columns\TextColumn::make('status')
                     ->label('Status')
-                    ->colors([
-                        'gray' => 'pending',
-                        'success' => 'paid',
-                        'danger' => 'failed',
-                        'warning' => 'expired',
-                    ]),
+                    ->badge()
+                    ->color(fn ($state) => match ($state) {
+                        'pending' => 'gray',
+                        'settlement', 'capture' => 'success',
+                        'deny', 'cancel', 'failure' => 'danger',
+                        'expire' => 'warning',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn ($state) => match ($state) {
+                        'pending' => 'Pending',
+                        'settlement' => 'Settlement / Lunas',
+                        'capture' => 'Capture',
+                        'deny' => 'Deny',
+                        'cancel' => 'Cancel',
+                        'expire' => 'Expire',
+                        'failure' => 'Failure',
+                        default => ucfirst((string) $state),
+                    }),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Tanggal')
@@ -127,9 +142,12 @@ class PaymentResource extends Resource
                     ->label('Status')
                     ->options([
                         'pending' => 'Pending',
-                        'paid' => 'Paid',
-                        'failed' => 'Failed',
-                        'expired' => 'Expired',
+                        'settlement' => 'Settlement / Lunas',
+                        'capture' => 'Capture',
+                        'deny' => 'Deny',
+                        'cancel' => 'Cancel',
+                        'expire' => 'Expire',
+                        'failure' => 'Failure',
                     ]),
             ])
             ->defaultSort('created_at', 'desc')
