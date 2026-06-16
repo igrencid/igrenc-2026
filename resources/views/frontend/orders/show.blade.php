@@ -76,21 +76,52 @@
                 </div>
             </div>
 
-            @if($paymentStatus !== 'paid')
-                <div class="mt-8 rounded-2xl border border-purple-500/20 bg-purple-500/10 p-5">
-                    <h2 class="text-2xl font-black text-purple-300">Instruksi Pembayaran</h2>
+@if($paymentStatus !== 'paid')
+    <div class="mt-8 rounded-2xl border border-purple-500/20 bg-purple-500/10 p-5">
 
-                    <div class="mt-4 space-y-2 text-slate-300">
-                        <div>Transfer sesuai nominal:</div>
-                        <div class="text-3xl font-black text-cyan-300">
-                            Rp {{ number_format($order->total_price, 0, ',', '.') }}
-                        </div>
-                        <div class="text-sm text-slate-400">
-                            Setelah transfer, upload bukti pembayaran. Pesanan baru diproses setelah admin approve pembayaran.
-                        </div>
-                    </div>
+        <h2 class="text-2xl font-black text-purple-300">
+            Instruksi Pembayaran
+        </h2>
+
+        <div class="mt-4 space-y-2 text-slate-300">
+
+            <div>Transfer sesuai nominal:</div>
+
+            <div class="text-3xl font-black text-cyan-300">
+                Rp {{ number_format($order->total_price, 0, ',', '.') }}
+            </div>
+
+            <div class="text-sm text-slate-400">
+                Pilih salah satu metode pembayaran di bawah ini.
+            </div>
+
+        </div>
+
+        <div class="mt-6 flex flex-col gap-4 md:flex-row">
+
+            <a
+                href="{{ route('orders.midtrans.pay', $order->invoice_number) }}"
+                class="rounded-2xl bg-green-600 px-6 py-4 text-center font-black text-white hover:bg-green-500"
+            >
+                Bayar via Midtrans
+            </a>
+
+            <div class="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-4 text-sm text-slate-300">
+
+                <div class="font-bold text-cyan-300">
+                    Transfer Manual
                 </div>
-            @endif
+
+                <div class="mt-2">
+                    Jika tidak menggunakan Midtrans, lakukan transfer manual lalu upload bukti pembayaran di bagian bawah halaman ini.
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+@endif
 
             <div class="mt-8">
                 <h2 class="text-2xl font-black">Item Pesanan</h2>
