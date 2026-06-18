@@ -1,24 +1,27 @@
-<div class="space-y-6">
-    <div class="rounded-3xl border border-white/10 bg-slate-950/80 p-8 shadow-2xl shadow-violet-500/10">
-        <h1 class="text-3xl font-semibold text-white">Visitor Analytics</h1>
-        <p class="mt-2 max-w-3xl text-sm text-slate-300">
-            Visitor analytics widgets are available on the dashboard. Use the dashboard to view the latest site traffic metrics, popular pages, and visitor trends.
-        </p>
-    </div>
+<x-filament-panels::page>
+    <div class="relative overflow-hidden rounded-2xl border border-primary-200 bg-white p-6 shadow-sm ring-1 ring-gray-950/5 transition dark:border-primary-500/20 dark:bg-gray-900 dark:ring-white/10">
+        <div class="absolute right-0 top-0 h-32 w-32 rounded-full bg-primary-500/10 blur-3xl"></div>
 
-    <div class="grid gap-6 xl:grid-cols-2">
-        <div class="rounded-3xl border border-white/10 bg-slate-950/80 p-6 shadow-xl shadow-violet-500/5">
-            <h2 class="text-xl font-semibold text-white">Dashboard First</h2>
-            <p class="mt-3 text-sm text-slate-300">
-                This page is a dedicated navigation entry for visitor analytics. The analytics cards and charts are displayed on the main admin dashboard.
+        <div class="relative flex flex-col gap-2">
+            <div class="flex items-center gap-3">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-500/10 text-primary-600 dark:bg-primary-500/20 dark:text-primary-300">
+                    <x-heroicon-o-chart-bar class="h-6 w-6" />
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-black tracking-tight text-gray-950 dark:text-white">
+                        Ringkasan Visitor Analytics
+                    </h2>
+
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        Dashboard trafik website IgrencGame
+                    </p>
+                </div>
+            </div>
+
+            <p class="mt-4 max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-400">
+                Pantau performa kunjungan website IgrencGame mulai dari total pengunjung, visitor harian, sumber trafik, halaman populer, hingga aktivitas kunjungan terbaru
             </p>
         </div>
-
-        <div class="rounded-3xl border border-white/10 bg-slate-950/80 p-6 shadow-xl shadow-cyan-500/5">
-            <h2 class="text-xl font-semibold text-white">Quick tip</h2>
-            <p class="mt-3 text-sm text-slate-300">
-                Keep an eye on the dashboard to track total visitors, daily unique sessions, traffic sources, and recent activity.
-            </p>
-        </div>
     </div>
-</div>
+</x-filament-panels::page>

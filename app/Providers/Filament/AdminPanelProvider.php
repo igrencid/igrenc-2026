@@ -52,6 +52,7 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Widgets\WeeklyVisitorChart::class,
                 \App\Filament\Widgets\TrafficSourceChart::class,
                 \App\Filament\Widgets\MonthlyVisitorChart::class,
+                \App\Filament\Widgets\SalesChart::class,
                 \App\Filament\Widgets\PopularPagesTable::class,
                 \App\Filament\Widgets\RecentVisitsTable::class,
             ])
