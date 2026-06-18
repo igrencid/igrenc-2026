@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Dashboard;
+use App\Filament\Pages\VisitorAnalytics;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -26,6 +27,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->brandName('IgrencGame')
             ->colors([
                 'primary' => Color::Purple,
             ])
@@ -39,12 +41,20 @@ class AdminPanelProvider extends PanelProvider
             )
             ->pages([
                 Dashboard::class,
+                VisitorAnalytics::class,
             ])
             ->discoverWidgets(
                 in: app_path('Filament/Widgets'),
                 for: 'App\\Filament\\Widgets'
             )
-            ->widgets([])
+            ->widgets([
+                \App\Filament\Widgets\VisitorOverviewStats::class,
+                \App\Filament\Widgets\WeeklyVisitorChart::class,
+                \App\Filament\Widgets\TrafficSourceChart::class,
+                \App\Filament\Widgets\MonthlyVisitorChart::class,
+                \App\Filament\Widgets\PopularPagesTable::class,
+                \App\Filament\Widgets\RecentVisitsTable::class,
+            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

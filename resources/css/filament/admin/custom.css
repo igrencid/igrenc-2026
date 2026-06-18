@@ -1,0 +1,45 @@
+/* IgrencGame Filament custom theme tweaks - glassmorphism + purple accents */
+:root {
+    --igrenc-primary: #7c3aed; /* purple */
+    --igrenc-cyan: #06b6d4;
+    --igrenc-glass-border: rgba(255,255,255,0.06);
+    --igrenc-card-bg: rgba(12,12,20,0.6);
+}
+
+:root.dark .fi-body {
+    background: linear-gradient(180deg, #0b0b12 0%, #06060a 100%);
+}
+
+.fi-wi-stats-overview-stat {
+    background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border: 1px solid var(--igrenc-glass-border);
+    border-radius: 12px;
+    box-shadow: 0 6px 30px rgba(124,58,237,0.06);
+}
+
+.fi-section, .fi-dropdown-panel, .fi-wi-stats-overview, .fi-wi-section {
+    border-radius: 12px;
+    border: 1px solid var(--igrenc-glass-border);
+}
+
+/* Stat icon circle */
+.fi-wi-stats-overview-stat .fi-wi-stats-overview-stat-icon {
+    background: linear-gradient(180deg, rgba(124,58,237,0.18), rgba(6,182,212,0.08));
+    border-radius: 9999px;
+    color: white;
+}
+
+/* Chart accent */
+.fi-wi-chart .chartjs-render-monitor {
+    border-radius: 10px;
+}
+
+/* Table tweaks */
+.fi-tables-table td, .fi-tables-table th {
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+/* Topbar tweak */
+.fi-topbar {
+    background: linear-gradient(90deg, rgba(10,7,20,0.6), rgba(10,10,20,0.6));
+}
